@@ -85,7 +85,7 @@ class ConnectivitySocks {
       : ''
     let iJWTLength = Buffer.byteLength(jwt, 'utf8')
     console.log('generateSocksClientOptions(): jwt length=', iJWTLength)
-    let iLocationLength = Buffer.byteLength(sLocationBase64, 'utf8')
+    let iLocationLength = (sLocationBase64 ? Buffer.byteLength(sLocationBase64, 'utf8') : 0)
     let xJWTLengthBuffer = Buffer.alloc(4)
     xJWTLengthBuffer.writeInt32BE(iJWTLength)
     let xLocationLengthBuffer = Buffer.alloc(1)
@@ -99,18 +99,29 @@ class ConnectivitySocks {
         type: 5,
         custom_auth_method: 0x80,
         custom_auth_request_handler: async () => {
-          return Buffer.concat([
-            Buffer.from([0x01]), // Authentication method version - currently 1
-            xJWTLengthBuffer, // Length of the JWT
-            Buffer.from(jwt), // The actual value of the JWT in its encoded form
-            xLocationLengthBuffer, // Length of the Cloud Connector location ID (0 if no Cloud Connector location ID is used)
-            (iLocationLength>0 ? Buffer.from(sLocationBase64) : null), // The value of the Cloud Connector location ID in base64-encoded form
-          ])
+          if( iLocationLength>0 ){
+            return Buffer.concat([
+              Buffer.from([0x01]), // Authentication method version - currently 1
+              xJWTLengthBuffer, // Length of the JWT
+              Buffer.from(jwt), // The actual value of the JWT in its encoded form
+              xLocationLengthBuffer, // Length of the Cloud Connector location ID (0 if no Cloud Connector location ID is used)
+              Buffer.from(sLocationBase64), // The value of the Cloud Connector location ID in base64-encoded form
+            ])            
+          }else{
+            return Buffer.concat([
+              Buffer.from([0x01]), // Authentication method version - currently 1
+              xJWTLengthBuffer, // Length of the JWT
+              Buffer.from(jwt), // The actual value of the JWT in its encoded form
+              xLocationLengthBuffer // Length of the Cloud Connector location ID (0 if no Cloud Connector location ID is used)
+              // DO not set this when location is empty!  
+            ])
+          }
         },
         custom_auth_response_size: 2,
         custom_auth_response_handler: async (data) => {
           logAuthMessage(data[1])
           if (data[1] === 0x00) {
+            console.log('socks5 proxy auth response code success' );
             return true
           } else {
             return false
