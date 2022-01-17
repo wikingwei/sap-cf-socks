@@ -55,6 +55,7 @@ class ConnectivitySocks {
               this.#jwtCache.expiration =
                 Date.now() + (r.expires_in - 60) * 1000
               this.#jwtCache.jwt = r.access_token
+              console.log('got jwt: ',r.access_token)
               resolve(r.access_token)
             })
           }
