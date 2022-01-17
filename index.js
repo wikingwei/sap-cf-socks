@@ -33,11 +33,11 @@ class ConnectivitySocks {
     return new Promise((resolve, reject) => {
       log('Renewing the new connectivity access token')
       https
-        .post( // update: get not allowed
+        .get(
           `${
             this.#connectivityCredentials.token_service_url
           }/oauth/token?grant_type=client_credentials&response_type=token`,
-          {},
+          
           {
             headers: {
               Authorization: `Basic ${Buffer.from(
