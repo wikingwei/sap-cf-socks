@@ -13,8 +13,10 @@ class ConnectivitySocks {
   #connectivityCredentials
 
   constructor() {
-    xsenv.loadEnv()
-    this.#connectivityCredentials = xsenv.cfServiceCredentials('connectivity')
+    //xsenv.loadEnv()
+    //this.#connectivityCredentials = xsenv.cfServiceCredentials('connectivity') // not work, change to below
+    this.#connectivityCredentials = xsenv.serviceCredentials({ tag: 'connectivity' });
+    
     if (!this.#connectivityCredentials) {
       throw Error(
         'No connectivity credentials provided (local: not supported, SAP BTP: check binding)'
