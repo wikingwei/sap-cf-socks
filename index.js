@@ -33,10 +33,11 @@ class ConnectivitySocks {
     return new Promise((resolve, reject) => {
       log('Renewing the new connectivity access token')
       https
-        .get(
+        .post( // update: get not allowed
           `${
             this.#connectivityCredentials.token_service_url
           }/oauth/token?grant_type=client_credentials&response_type=token`,
+          {},
           {
             headers: {
               Authorization: `Basic ${Buffer.from(
@@ -82,6 +83,7 @@ class ConnectivitySocks {
       ? Buffer.from(process.env.PG_CONNECTIVITY_LOCATION_ID).toString('base64')
       : ''
     let iJWTLength = Buffer.byteLength(jwt, 'utf8')
+    console.log('generateSocksClientOptions(): jwt length=', iJWTLength)
     let iLocationLength = Buffer.byteLength(sLocationBase64, 'utf8')
     let xJWTLengthBuffer = Buffer.alloc(4)
     xJWTLengthBuffer.writeInt32BE(iJWTLength)
@@ -101,7 +103,7 @@ class ConnectivitySocks {
             xJWTLengthBuffer, // Length of the JWT
             Buffer.from(jwt), // The actual value of the JWT in its encoded form
             xLocationLengthBuffer, // Length of the Cloud Connector location ID (0 if no Cloud Connector location ID is used)
-            Buffer.from(sLocationBase64), // The value of the Cloud Connector location ID in base64-encoded form
+            (iLocationLength>0 ? Buffer.from(sLocationBase64) : null), // The value of the Cloud Connector location ID in base64-encoded form
           ])
         },
         custom_auth_response_size: 2,
